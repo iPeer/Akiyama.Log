@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <!--<RuntimeIdentifier>win-x64</RuntimeIdentifier>-->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting> <!-- GitHub Actions -->
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VersionInfo>1.0.$([System.DateTime]::UtcNow.DayOfYear.ToString().PadLeft(3, "0")).$([System.DateTime]::UtcNow.Hour.ToString().PadLeft(2, "0"))$([System.DateTime]::UtcNow.Minute.ToString().PadLeft(2, "0"))</VersionInfo>
+    <AssemblyVersion Condition=" '$(VersionInfo)' == '' ">0.0.0.0</AssemblyVersion>
+    <AssemblyVersion Condition=" '$(VersionInfo)' != '' ">$(VersionInfo)</AssemblyVersion>
+    <Version Condition=" '$(VersionInfo)' == '' ">0.0.0.0</Version>
+    <Version Condition=" '$(VersionInfo)' != '' ">$(VersionInfo)</Version>
+  </PropertyGroup>
+
+</Project>
