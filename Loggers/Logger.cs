@@ -31,29 +31,50 @@ namespace Akiyama.Log.Loggers
 
 
         /* Configurable Variables */
-        public string Name { get; internal set; } = string.Empty;
+        public string Name { get; private set; } = string.Empty;
         public LoggerType Type { get; private set; }
-        public int CacheSize { get; set; } = 100;
-        public int CacheBypassLength { get; set; } = 500;
+        public int CacheSize { get; private set; } = 100;
+        public int CacheBypassLength { get; private set; } = 500;
         public LogLevel Level { get; private set; } = LogLevel.INFO;
-        public string LineFormat { get; set; } = "[<time>] [<level>] <name>: <message>";
-        public LogFormatter Formatter { get; set; } = LogFormatter.DEFAULT;
-        public string DateTimeFormat { get; set; } = @"yyyy-MM-dd HH\:mm\:ss";
-        public string LogDirectory { get; private set; }
+        public string LineFormat { get; private set; } = "[<time>] [<level>] <message>";
+        public LogFormatter Formatter { get; private set; } = LogFormatter.DEFAULT;
+        public string DateTimeFormat { get; private set; } = @"yyyy-MM-dd HH\:mm\:ss";
+        public string OutputDirectory { get; private set; }
         /// <summary>
         /// The full path for this <see cref="Logger"/>, including file name.
         /// </summary>
         public string LogPath { get; private set; }
         public int MaxCycledFiles { get; private set; } = 5;
-        public bool ConsoleOutputDisabled { get; set; }
-        public bool DebugOutputDisabled { get; set; } = false;
-        public Encoding Encoding { get; set; } = Encoding.Unicode;
+        public bool ConsoleOutputDisabled { get; private set; }
+        public bool DebugOutputDisabled { get; private set; } = false;
+        public Encoding Encoding { get; private set; } = Encoding.Unicode;
 
-
-        public Logger()
+        public Logger(string name, string outputDirectory = "./logs/", LogLevel level = LogLevel.INFO, int maxOldFiles = 5, LoggerType type = LoggerType.REALTIME,
+            LogFormatter formatter = LogFormatter.DEFAULT, int cacheSize = 100, int cacheBypassLength = 500, string lineFormat = "[<time>] [<level>]: <message>",
+            string datetimeFormat = @"yyyy-MM-dd HH\:mm\:ss", bool consoleOutputDisabled = false, bool debugOutputDisabled = false)
         {
+            File.WriteAllText(Path.Combine(outputDirectory, $"test.log"), "Hello World");
+            this.Name = name;
+            this.OutputDirectory = outputDirectory;
+            this.Level = level;
+            this.Type = type;
+            this.Formatter = formatter;
+            this.CacheSize = cacheSize;
+            this.CacheBypassLength = cacheBypassLength;
+            this.LineFormat = lineFormat;
+            this.DateTimeFormat = datetimeFormat;
+            this.ConsoleOutputDisabled = consoleOutputDisabled;
+            this.DebugOutputDisabled = debugOutputDisabled;
+            this.MaxCycledFiles = maxOldFiles;
+            this.UpdateLogPath();
+            this.MakeDirectories();
             this.TrySetUpColourConsole();
             this.CycleFiles();
+        }
+
+        internal void MakeDirectories()
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(this.OutputDirectory));
         }
 
         private void CycleFiles()
@@ -65,18 +86,18 @@ namespace Akiyama.Log.Loggers
             }
             else if (MaxCycledFiles == 1)
             {
-                if (File.Exists(Path.Combine(LogDirectory, $"{Path.GetFileNameWithoutExtension(LogPath)}.previous{Path.GetExtension(LogPath)}")))
+                if (File.Exists(Path.Combine(OutputDirectory, $"{Path.GetFileNameWithoutExtension(LogPath)}.previous{Path.GetExtension(LogPath)}")))
                 {
-                    File.Delete(Path.Combine(LogDirectory, $"{Path.GetFileNameWithoutExtension(LogPath)}.previous{Path.GetExtension(LogPath)}"));
+                    File.Delete(Path.Combine(OutputDirectory, $"{Path.GetFileNameWithoutExtension(LogPath)}.previous{Path.GetExtension(LogPath)}"));
                 }
                 if (File.Exists(LogPath))
-                    File.Move(LogPath, Path.Combine(LogDirectory, $"{Path.GetFileNameWithoutExtension(LogPath)}.previous{Path.GetExtension(LogPath)}"));
+                    File.Move(LogPath, Path.Combine(OutputDirectory, $"{Path.GetFileNameWithoutExtension(LogPath)}.previous{Path.GetExtension(LogPath)}"));
             }
             else
             {
                 for (int x = MaxCycledFiles; x > 0; x--)
                 {
-                    string fileName = Path.Combine(LogDirectory, $"{Path.GetFileNameWithoutExtension(LogPath)}.{x}{Path.GetExtension(LogPath)}");
+                    string fileName = Path.Combine(OutputDirectory, $"{Path.GetFileNameWithoutExtension(LogPath)}.{x}{Path.GetExtension(LogPath)}");
                     if (x == MaxCycledFiles)
                     {
                         if (File.Exists(fileName))
@@ -88,14 +109,14 @@ namespace Akiyama.Log.Loggers
                         continue;
                     if (File.Exists(fileName))
                     {
-                        string newPath = Path.Combine(LogDirectory, $"{Path.GetFileNameWithoutExtension(LogPath)}.{x + 1}{Path.GetExtension(LogPath)}");
+                        string newPath = Path.Combine(OutputDirectory, $"{Path.GetFileNameWithoutExtension(LogPath)}.{x + 1}{Path.GetExtension(LogPath)}");
                         File.Move(fileName, newPath);
                     }
 
                 }
                 if (File.Exists(LogPath))
                 {
-                    File.Move(LogPath, Path.Combine(LogDirectory, $"{Path.GetFileNameWithoutExtension(LogPath)}.1{Path.GetExtension(LogPath)}"));
+                    File.Move(LogPath, Path.Combine(OutputDirectory, $"{Path.GetFileNameWithoutExtension(LogPath)}.1{Path.GetExtension(LogPath)}"));
                 }
             }
         }
@@ -128,7 +149,7 @@ namespace Akiyama.Log.Loggers
         /// </summary>
         /// <param name="childName">The Name of the child <see cref="Logger"/>.</param>
         /// <returns></returns>
-        public Logger CreateChild<TSource>(string childName)
+        public Logger CreateChild(string childName)
         {
             Logger child = this.MemberwiseClone() as Logger;
             child.SetName(childName, out _, renameFile: true, silent: true);
@@ -166,12 +187,12 @@ namespace Akiyama.Log.Loggers
 
         internal void UpdateLogPath()
         {
-            this.LogPath = Path.Combine(this.LogDirectory, $"{this.Name}.log");
+            this.LogPath = Path.Combine(this.OutputDirectory, $"{this.Name}.log");
         }
 
         public void SetLevel(LogLevel level)
         {
-            SetLevel(level);
+            this.Level = level;
             this.LogInternal($"Log level changed to '{level}'.");
         }
 
@@ -181,7 +202,7 @@ namespace Akiyama.Log.Loggers
             {
                 List<string> cache = this.LineCache.ToList();
                 this.LineCache.Clear();
-                using (StreamWriter w = new StreamWriter(LogPath, append: true, encoding: Encoding))
+                using (StreamWriter w = File.AppendText(LogPath))
                 {
                     w.Write(string.Join("\n", cache) + "\n");
                 }
