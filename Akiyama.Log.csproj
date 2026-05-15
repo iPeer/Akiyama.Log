@@ -16,4 +16,8 @@
     <Version Condition=" '$(VersionInfo)' != '' ">$(VersionInfo)</Version>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Output\" />
+  </ItemGroup>
+
 </Project>
