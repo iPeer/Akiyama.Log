@@ -154,6 +154,10 @@ namespace Akiyama.Log.Loggers
             Logger child = this.MemberwiseClone() as Logger;
             child.SetName(childName, out _, renameFile: true, silent: true);
             _children.Add(child);
+            child.UpdateLogPath();
+            child.MakeDirectories();
+            child.TrySetUpColourConsole();
+            child.CycleFiles();
             child.Parent = this;
             return child;
         }
