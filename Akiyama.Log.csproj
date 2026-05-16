@@ -9,11 +9,11 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <VersionInfo>1.0.$([System.DateTime]::UtcNow.DayOfYear.ToString().PadLeft(3, "0")).$([System.DateTime]::UtcNow.Hour.ToString().PadLeft(2, "0"))$([System.DateTime]::UtcNow.Minute.ToString().PadLeft(2, "0"))</VersionInfo>
-    <AssemblyVersion Condition=" '$(VersionInfo)' == '' ">0.0.0.0</AssemblyVersion>
-    <AssemblyVersion Condition=" '$(VersionInfo)' != '' ">$(VersionInfo)</AssemblyVersion>
-    <Version Condition=" '$(VersionInfo)' == '' ">0.0.0.0</Version>
-    <Version Condition=" '$(VersionInfo)' != '' ">$(VersionInfo)</Version>
+    <VersionPrefix>1.0</VersionPrefix>
+    <VersionInfo>$(VersionPrefix).$([System.DateTime]::UtcNow.DayOfYear.ToString().PadLeft(3, '0')).$([System.DateTime]::UtcNow.Hour.ToString().PadLeft(2, '0'))$([System.DateTime]::UtcNow.Minute.ToString().PadLeft(2, '0'))</VersionInfo>
+    <AssemblyVersion>$(VersionPrefix).0.0</AssemblyVersion>
+    <Version>$(VersionPrefix).0.0</Version>
+    <FileVersion>$(VersionInfo)</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
